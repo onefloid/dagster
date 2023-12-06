@@ -2,6 +2,7 @@ import functools
 import json
 from typing import (
     TYPE_CHECKING,
+    AbstractSet,
     Mapping,
     NamedTuple,
     Optional,
@@ -111,6 +112,21 @@ class AssetDaemonCursor(NamedTuple):
         """Returns the previous AssetConditionEvaluation for a given asset key, if it exists."""
         previous_evaluation_state = self.get_previous_evaluation_state(asset_key)
         return previous_evaluation_state.previous_evaluation if previous_evaluation_state else None
+
+    def subset_cursor(self, asset_keys: AbstractSet[AssetKey]) -> "AssetDaemonCursor":
+        return AssetDaemonCursor(
+            evaluation_id=self.evaluation_id,
+            previous_evaluation_state=[
+                evaluation_state
+                for evaluation_state in self.previous_evaluation_state
+                if evaluation_state.asset_key in asset_keys
+            ],
+            last_observe_request_timestamp_by_asset_key={
+                asset_key: val
+                for asset_key, val in self.last_observe_request_timestamp_by_asset_key.items()
+                if asset_key in asset_keys
+            },
+        )
 
     def with_updates(
         self,
