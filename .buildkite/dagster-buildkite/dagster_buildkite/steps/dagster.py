@@ -110,7 +110,8 @@ def build_repo_wide_pyright_steps() -> List[CommandStep]:
             "pip install -e python_modules/dagster[pyright] -e python_modules/dagster-pipes",
             "make pyright",
         )
-        .on_test_image(AvailablePythonVersion.get_default())
+        # 3.11 (current default) can't support the entire huge pyright environment as of 2024-01-29
+        .on_test_image(AvailablePythonVersion.V3_10)
         .with_skip(skip_if_no_python_changes())
         .build(),
     ]
